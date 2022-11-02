@@ -1,0 +1,51 @@
+import React, { Fragment, useState, useEffect } from "react";
+import LicensePage from "./LicensePage";
+import LicenseAddForm from "./LicenseAddForm";
+import licenseService from "services/licenseService";
+import debug from "sabio-debug";
+
+const License = () => {
+  const _logger = debug.extend("License");
+  const [pageData, setPageData] = useState({
+    arrayOflicenses: [],
+    licenseComponents: [],
+  });
+  const [page] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+
+  const mapLicenses = (license) => {
+    return <LicensePage license={license} key={license.id} />;
+  };
+
+  useEffect(() => {
+    licenseService
+      .getAllLicenses(page.pageIndex, page.pageSize)
+      .then(GetLicenseSuccess)
+      .catch(GetLicenseError);
+  }, []);
+
+  const GetLicenseSuccess = (response) => {
+    _logger(response);
+    setPageData((prevState) => {
+      const pd = { ...prevState };
+      pd.arrayOflicenses = response.item.pagedItems;
+      pd.licenseComponents = pd.arrayOflicenses.map(mapLicenses);
+      return pd;
+    });
+  };
+
+  const GetLicenseError = (err) => {
+    _logger(err);
+  };
+
+  return (
+    <Fragment>
+      <LicenseAddForm />
+      <div className="row m-5">{pageData.arrayOflicenses.map(mapLicenses)}</div>
+    </Fragment>
+  );
+};
+
+export default License;
